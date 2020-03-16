@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Cam 1</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/js/all.min.js" integrity="sha256-MAgcygDRahs+F/Nk5Vz387whB4kSK9NXlDN3w58LLq0=" crossorigin="anonymous"></script>
+    <style type="text/css" media="all">
+      body { background-color: #fafafa; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-12 pt-3">
+          <h3 id="title" class="py-3"></h3>
+          <img id="photo" class="img-fluid" src="" alt="" />
+        </div>
+      </div>
+      <div class="row text-center py-4">
+        <div class="col-4">
+          <button type="button" class="btn btn-lg btn-danger" onclick="photos.prev()"><i class="fas fa-step-backward"></i></button>
+        </div>
+        <div class="col-4">
+          <button type="button" class="btn btn-lg btn-danger" onclick="photos.refresh()"><i class="fas fa-sync"></i></button>
+        </div>
+        <div class="col-4">
+          <button type="button" class="btn btn-lg btn-danger" onclick="photos.next()"><i class="fas fa-step-forward"></i></button>
+        </div>
+      </div>
+    </div>
+    <script>
+      window.photos = (function(){
+        // Cosntants
+        let last_snapshot = "2255"
+        let base_url = "http://cam.hepplers.ch/cam1/"
+        // Helpers
+        let get_hm = function() {
+          var dt = new Date();
+          return {"h": dt.getHours(), "m": dt.getMinutes()};
+        }
+        
+        let pad_number = function(x) {
+          if ((x + "").length == 1) {
+            return "0" + x;
+          } else {
+            return x.toString();
+          }
+        }
+        
+        let time_to_string = function(time) {
+          if (time["h"] < 4) {
+            return last_snapshot;
+          }
+          hours = pad_number(time["h"])
+          minute_mod = time["m"] % 10
+          if (minute_mod < 5) {
+            minutes = time["m"] - minute_mod
+          } else {
+            minutes = time["m"] - minute_mod + 5
+          }
+          return hours + pad_number(minutes);
+        }
+        
+        // Setup
+        
+        var current_time = get_hm()
+        
+        let photo_names = [];
+        
+        for (var h = 5; h < 23; h++) {
+          for(var m = 0; m < 12; m ++)
+          photo_names.push(time_to_string({"h": h, "m": m * 5}))
+        }
+        
+        let n = photo_names.length
+        var current_index = photo_names.indexOf(time_to_string(current_time))
+        
+        let = update_title = function(x = "") {
+          document.getElementById("title").innerHTML = x;
+        }
+        
+        let = update_photo = function(src) {
+          document.getElementById("photo")
+            .src = base_url + src + ".jpg";
+        }      
+        
+        let photos = {
+          names: photo_names,
+          next: function() {
+            if ((current_index + 1) < n) {
+              current_index ++;
+            } else {
+              current_index = 0;
+            }
+            update_title(this.names[current_index])
+            update_photo(this.names[current_index])
+            return true;
+          },
+          prev: function() {
+            if ((current_index - 1) > 0) {
+              current_index --;
+            } else {
+              current_index = n - 1;
+            }
+            update_title(this.names[current_index])
+            update_photo(this.names[current_index])
+            return true;
+          },
+          refresh: function() {
+            current_time = get_hm();
+            current_index = photo_names.indexOf(time_to_string(current_time));
+            this.next()
+            return true;
+          }
+        }
+        return photos;
+      })();
+      window.photos.next()
+    </script>
+  </body>
+</html>
