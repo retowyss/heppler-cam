@@ -19,22 +19,29 @@
         </div>
       </div>
       <div class="row text-center py-4">
-        <div class="col-4">
-          <button type="button" class="btn btn-lg btn-danger" onclick="photos.prev()"><i class="fas fa-step-backward"></i></button>
+        <div class="col-3 text-left">
+          <button type="button" class="btn btn-lg btn-dark" onclick="photos.prev()"><i class="fas fa-step-backward"></i></button>
         </div>
-        <div class="col-4">
-          <button type="button" class="btn btn-lg btn-danger" onclick="photos.refresh()"><i class="fas fa-sync"></i></button>
+        <div class="col-2">
+          <button type="button" class="btn btn-lg btn-primary" onclick="photos.refresh()"><i class="fas fa-sync"></i></button>
         </div>
-        <div class="col-4">
-          <button type="button" class="btn btn-lg btn-danger" onclick="photos.next()"><i class="fas fa-step-forward"></i></button>
+        <div class="col-2">
+          <button type="button" class="btn btn-lg btn-success" onclick="photos.play()"><i class="fas fa-play"></i></button>
+        </div>
+        <div class="col-2">
+          <button type="button" class="btn btn-lg btn-danger" onclick="photos.stop()"><i class="fas fa-stop"></i></button>
+        </div>
+        <div class="col-3 text-right">
+          <button type="button" class="btn btn-lg btn-dark" onclick="photos.next()"><i class="fas fa-step-forward"></i></button>
         </div>
       </div>
+      
     </div>
     <script>
       window.photos = (function(){
         // Cosntants
-        let last_snapshot = "2255"
-        let base_url = "http://cam.hepplers.ch/cam1/"
+        let last_snapshot = "2255";
+        let base_url = "http://cam.hepplers.ch/cam1/";
         // Helpers
         let get_hm = function() {
           var dt = new Date();
@@ -56,26 +63,30 @@
           hours = pad_number(time["h"])
           minute_mod = time["m"] % 10
           if (minute_mod < 5) {
-            minutes = time["m"] - minute_mod
+            minutes = time["m"] - minute_mod;
           } else {
-            minutes = time["m"] - minute_mod + 5
+            minutes = time["m"] - minute_mod + 5;
           }
           return hours + pad_number(minutes);
         }
         
+        function sleep(ms) {
+          return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
         // Setup
         
-        var current_time = get_hm()
-        
+        var current_time = get_hm();
+        var stop_flag = false;
         let photo_names = [];
         
         for (var h = 5; h < 23; h++) {
           for(var m = 0; m < 12; m ++)
-          photo_names.push(time_to_string({"h": h, "m": m * 5}))
+          photo_names.push(time_to_string({"h": h, "m": m * 5}));
         }
         
-        let n = photo_names.length
-        var current_index = photo_names.indexOf(time_to_string(current_time))
+        let n = photo_names.length;
+        var current_index = photo_names.indexOf(time_to_string(current_time));
         
         let = update_title = function(x = "") {
           document.getElementById("title").innerHTML = x;
@@ -94,9 +105,9 @@
             } else {
               current_index = 0;
             }
-            update_title(this.names[current_index])
-            update_photo(this.names[current_index])
-            return true;
+            update_title(this.names[current_index]);
+            update_photo(this.names[current_index]);
+            return this;
           },
           prev: function() {
             if ((current_index - 1) > 0) {
@@ -104,15 +115,34 @@
             } else {
               current_index = n - 1;
             }
-            update_title(this.names[current_index])
-            update_photo(this.names[current_index])
-            return true;
+            update_title(this.names[current_index]);
+            update_photo(this.names[current_index]);
+            return this;
           },
           refresh: function() {
             current_time = get_hm();
             current_index = photo_names.indexOf(time_to_string(current_time));
             this.prev()
-            return true;
+            return this;
+          },
+          play: async function() {
+            this.refresh();
+            play_start_index = current_index;
+            this.next()
+            while(play_start_index !== current_index) {
+              if (stop_flag) {
+                play_start_index = current_index
+              } else {
+                await sleep(2000);
+                this.next();
+              }
+            }
+            stop_flag = false;
+            return this;
+          },
+          stop: function() {
+            stop_flag = true;
+            return this;
           }
         }
         return photos;
