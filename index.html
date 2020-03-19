@@ -40,11 +40,14 @@
     <script>
       window.photos = (function(){
         // Cosntants
-        let last_snapshot = "2255";
+        let start_hour = 5;
+        let end_hour = 23;
         let base_url = "http://cam.hepplers.ch/cam1/";
+        let play_sleep_duration = 2000;
+        
         // Helpers
         let get_hm = function() {
-          var dt = new Date();
+          let dt = new Date();
           return {"h": dt.getHours(), "m": dt.getMinutes()};
         }
         
@@ -57,7 +60,7 @@
         }
         
         let time_to_string = function(time) {
-          if (time["h"] < 4) {
+          if (time["h"] < start_hour) {
             return last_snapshot;
           }
           hours = pad_number(time["h"])
@@ -77,10 +80,11 @@
         // Setup
         
         var current_time = get_hm();
+        let last_snapshot = time_to_string({"h": end_hour - 1, "m": 59});
         var stop_flag = false;
         let photo_names = [];
         
-        for (var h = 5; h < 23; h++) {
+        for (var h = start_hour; h < end_hour; h++) {
           for(var m = 0; m < 12; m ++)
           photo_names.push(time_to_string({"h": h, "m": m * 5}));
         }
@@ -93,8 +97,7 @@
         }
         
         let = update_photo = function(src) {
-          document.getElementById("photo")
-            .src = base_url + src + ".jpg";
+          document.getElementById("photo").src = base_url + src + ".jpg";
         }      
         
         let photos = {
@@ -122,18 +125,18 @@
           refresh: function() {
             current_time = get_hm();
             current_index = photo_names.indexOf(time_to_string(current_time));
-            this.prev()
+            this.prev();
             return this;
           },
           play: async function() {
             this.refresh();
             play_start_index = current_index;
-            this.next()
+            this.next();
             while(play_start_index !== current_index) {
               if (stop_flag) {
                 play_start_index = current_index
               } else {
-                await sleep(2000);
+                await sleep(play_sleep_duration);
                 this.next();
               }
             }
